@@ -150,3 +150,27 @@ func cleanup() error {
 	}
 	return nil
 }
+
+func TestCVESubPath(t *testing.T) {
+	want := "2020/14xxx/CVE-2020-14882.md"
+	got, err := CVESubPath("CVE-2020-14882")
+	assert.NoError(t, err)
+	assert.Equal(t, want, got)
+}
+
+func TestCVESeqDir(t *testing.T) {
+	tests := []struct {
+		sequence int
+		want     string
+	}{
+		{974, "0xxx"},
+		{14882, "14xxx"},
+		{97, "0xxx"},
+	}
+
+	for _, tt := range tests {
+		got, err := cveSeqDir(tt.sequence)
+		assert.NoError(t, err)
+		assert.Equal(t, got, tt.want)
+	}
+}

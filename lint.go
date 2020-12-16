@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
+	"strings"
 	"sync"
 
 	"github.com/daehee/nvd"
@@ -24,12 +24,12 @@ func (r *Repo) LintCommit(commit string) (err error) {
 
 		switch pType {
 		case "cve":
-			err = lintCVE(path.Join(r.dirPath, p))
+			err = lintCVE(r.GetFullPath(p))
 			if err != nil {
 				log.Print(err)
 			}
 		case "researcher":
-			err = lintResearcher(path.Join(r.dirPath, p))
+			err = lintResearcher(r.GetFullPath(p))
 			if err != nil {
 				log.Print(err)
 			}
@@ -46,8 +46,8 @@ func (r *Repo) LintAll(concurrency int) error {
 	done := make(chan struct{})
 	defer close(done)
 
-	cvePaths, errStream := r.scanTree(done, "cve", ".md")
-	researcherPaths, errStream := r.scanTree(done, "researcher", ".md")
+	cvePaths, errStream := r.ScanTree(done, "cve", ".md")
+	researcherPaths, errStream := r.ScanTree(done, "researcher", ".md")
 
 	// Start a number of goroutines to read and lint files.
 	errWorkerStream := make(chan error)
@@ -80,6 +80,9 @@ func (r *Repo) LintAll(concurrency int) error {
 
 	return nil
 }
+
+// scanFn is a callback function used for per-file operation while directory scanning
+type scanFn func(string) error
 
 // lintConcurrent is an abstracted concurrent linter function that
 // accepts a linter scanFn for either lintCVE or lintResearcher
@@ -114,12 +117,14 @@ func lintCVE(p string) (err error) {
 
 	// Check CVE directory structure
 	if !isValidCVESubPath(cve.CVEID, p) {
-		wantPath, _ := cveSubPath(cve.CVEID)
+		wantPath, _ := CVESubPath(cve.CVEID)
 		fmt.Printf("[warn]\tinvalid dir for %s: got %s; want %s\n", cve.CVEID, cvePathToRelPath(p), wantPath)
 	}
 
 	// deduplicate values
-	cve.dedupeSort()
+	cve.Pocs = sortUniqStrings(cve.Pocs)
+	cve.Writeups = sortUniqStrings(cve.Writeups)
+	cve.Courses = sortUniqStrings(cve.Courses)
 
 	// TODO check required keys
 
@@ -145,12 +150,12 @@ func lintResearcher(p string) (err error) {
 
 	// Check researcher directory structure
 	if !isValidResearcherSubPath(researcher.Alias, p) {
-		wantPath := researcherFileName(researcher.Alias)
+		wantPath := ResearcherSubPath(researcher.Alias)
 		fmt.Printf("[warn]\tinvalid dir for %s: got %s; want %s\n", researcher.Alias, researcherPathToRelPath(p), wantPath)
 	}
 
 	// deduplicate values
-	researcher.dedupeSort()
+	researcher.CVEs = sortUniqStrings(researcher.CVEs)
 
 	// check required keys
 	if len(researcher.CVEs) == 0 {
@@ -170,4 +175,61 @@ func lintResearcher(p string) (err error) {
 	}
 	return nil
 
+}
+
+// cvePathToRelPath truncates cve filepath to relative path starting with year subdirectory
+func cvePathToRelPath(p string) string {
+	// ../../../../cvebase.com/cve/2018/0xxx/CVE-2018-0142.md ->
+	// 2018/0xxx/CVE-2018-0142.md
+	splitPath := strings.Split(p, "/")
+	return strings.Join(splitPath[len(splitPath)-3:], "/")
+}
+
+// researcherPathToRelPath truncates researcher file path to relative path
+func researcherPathToRelPath(p string) string {
+	splitPath := strings.Split(p, "/")
+	return strings.Join(splitPath[len(splitPath)-1:], "/")
+}
+
+// isValidCVESubPath checks if cve file is placed in correct year and sequence sub-directories.
+func isValidCVESubPath(cveID, path string) bool {
+	// Truncate path to slice containing relative path
+	splitPath := strings.Split(path, "/")
+	// ../../../../cvebase.com/cve/2018/xxx/CVE-2018-0142.md ->
+	// [2018, xxx, CVE-2018-0142.md]
+	splitPath = splitPath[len(splitPath)-3:]
+
+	validPath, err := CVESubPath(cveID)
+	if err != nil {
+		return false
+	}
+	splitValid := strings.Split(validPath, "/")
+
+	// Compare equality of slice values
+	for i, v := range splitPath {
+		if v != splitValid[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+// isValidResearcherSubPath checks if researcher is placed in correct researcher subdirectory
+func isValidResearcherSubPath(rAlias, path string) bool {
+	// Truncate path to slice containing relative path
+	splitPath := strings.Split(path, "/")
+	// ../../../../cvebase.com/researcher/orange.md
+	// becomes
+	// [orange.md]
+	splitPath = splitPath[len(splitPath)-1:]
+	splitValid := []string{ResearcherSubPath(rAlias)}
+
+	for i, v := range splitPath {
+		if v != splitValid[i] {
+			return false
+		}
+	}
+
+	return true
 }

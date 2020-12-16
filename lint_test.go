@@ -2,6 +2,8 @@ package cvebaser
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRepo_LintAll(t *testing.T) {
@@ -27,4 +29,9 @@ func TestRepo_LintCommit(t *testing.T) {
 		t.Fatal(err)
 	}
 
+}
+
+func TestIsValidCVEDirPath(t *testing.T) {
+	got := isValidCVESubPath("CVE-2016-0974", "../../../../cvebase.com/cve/2016/0xxx/CVE-2016-0974.md")
+	assert.True(t, got)
 }

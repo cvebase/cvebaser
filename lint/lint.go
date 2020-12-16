@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/cvebase/cvebaser"
 	"github.com/daehee/nvd"
@@ -13,6 +14,20 @@ import (
 
 type Linter struct {
 	*cvebaser.Repo
+	Stats *Stats
+}
+
+func (lr *Linter) Start() {
+	if lr.Stats != nil {
+		return
+	}
+	lr.Stats = &Stats{
+		StartedAt: time.Now(),
+	}
+}
+
+func (lr *Linter) End() {
+	lr.Stats.FinishedAt = time.Now()
 }
 
 func (lr *Linter) LintCommit(commit string) (err error) {

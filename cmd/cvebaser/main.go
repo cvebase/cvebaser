@@ -41,7 +41,7 @@ func (l *lintCommand) Run(_ context.Context, _ []string) error {
 	}
 	linter := &lint.Linter{Repo: repo}
 
-	start := time.Now()
+	linter.Start()
 	if l.commit != "" {
 		err = linter.LintCommit(l.commit)
 		if err != nil {
@@ -53,11 +53,11 @@ func (l *lintCommand) Run(_ context.Context, _ []string) error {
 			return err
 		}
 	}
-	duration := time.Since(start)
+	linter.End()
 
 	// TODO print number of files modified
 
-	fmt.Printf("\n--- %.1f seconds ---\n", duration.Seconds())
+	fmt.Printf("\nTime Completed: %v\n", linter.Stats.Duration().Round(time.Second))
 
 	return nil
 }

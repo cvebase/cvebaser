@@ -19,7 +19,6 @@ func SortUniqStrings(inSlice []string) []string {
 
 // UniqStrings improves implementation of removeDuplicates
 // avoids the excess work done by your use of append to remove elements
-// TODO replace RemoveDuplicates function
 func UniqStrings(s []string) []string {
 	seen := make(map[string]struct{}, len(s))
 	j := 0
@@ -32,24 +31,6 @@ func UniqStrings(s []string) []string {
 		j++
 	}
 	return s[:j]
-}
-
-func RemoveDuplicates(elements []string) []string {
-	// Use map to record duplicates as we find them.
-	encountered := map[string]bool{}
-	result := make([]string, 0)
-
-	for v := range elements {
-		if encountered[elements[v]] == true {
-			// Do not add duplicate.
-		} else {
-			// Record this element as an encountered element.
-			encountered[elements[v]] = true
-			// Append to result slice.
-			result = append(result, elements[v])
-		}
-	}
-	return result
 }
 
 // DirExists checks if a path exists and is a directory.

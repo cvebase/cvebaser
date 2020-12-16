@@ -96,18 +96,6 @@ func (r *Repo) CheckFilenamesFromCommit(h string) ([]string, error) {
 	// Dedupe values
 	files = UniqStrings(files)
 
-	// relToFullPaths := func(ps []string) []string {
-	// 	var psNew []string
-	// 	for _, p := range ps {
-	// 		psNew = append(psNew, path.Join(r.dirPath, p))
-	// 	}
-	// 	return psNew
-	// }
-
-	// fix file paths to repo dir path
-	// resFiles.CVEs = relToFullPaths(resFiles.CVEs)
-	// resFiles.Researchers = relToFullPaths(resFiles.Researchers)
-
 	return files, nil
 }
 

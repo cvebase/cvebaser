@@ -38,15 +38,16 @@ func (l *lintCommand) Run(_ context.Context, _ []string) error {
 	if err != nil {
 		return err
 	}
+	linter := &cvebaser.Linter{Repo: repo}
 
 	start := time.Now()
 	if l.commit != "" {
-		err = repo.LintCommit(l.commit)
+		err = linter.LintCommit(l.commit)
 		if err != nil {
 			return err
 		}
 	} else {
-		err = repo.LintAll(20)
+		err = linter.LintAll(20)
 		if err != nil {
 			return err
 		}

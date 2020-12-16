@@ -10,8 +10,12 @@ import (
 	"github.com/daehee/nvd"
 )
 
-func (r *Repo) LintCommit(commit string) (err error) {
-	files, err := r.CheckFilenamesFromCommit(commit)
+type Linter struct {
+	*Repo
+}
+
+func (lr *Linter) LintCommit(commit string) (err error) {
+	files, err := lr.CheckFilenamesFromCommit(commit)
 	if err != nil {
 		return err
 	}
@@ -24,12 +28,12 @@ func (r *Repo) LintCommit(commit string) (err error) {
 
 		switch pType {
 		case "cve":
-			err = lintCVE(r.GetFullPath(p))
+			err = lintCVE(lr.GetFullPath(p))
 			if err != nil {
 				log.Print(err)
 			}
 		case "researcher":
-			err = lintResearcher(r.GetFullPath(p))
+			err = lintResearcher(lr.GetFullPath(p))
 			if err != nil {
 				log.Print(err)
 			}
@@ -42,12 +46,12 @@ func (r *Repo) LintCommit(commit string) (err error) {
 }
 
 // LintAll is the concurrent variation of LintAll
-func (r *Repo) LintAll(concurrency int) error {
+func (lr *Linter) LintAll(concurrency int) error {
 	done := make(chan struct{})
 	defer close(done)
 
-	cvePaths, errStream := r.ScanTree(done, "cve", ".md")
-	researcherPaths, errStream := r.ScanTree(done, "researcher", ".md")
+	cvePaths, errStream := lr.ScanTree(done, "cve", ".md")
+	researcherPaths, errStream := lr.ScanTree(done, "researcher", ".md")
 
 	// Start a number of goroutines to read and lint files.
 	errWorkerStream := make(chan error)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cvebase/cvebaser"
+	"github.com/cvebase/cvebaser/lint"
 	"github.com/gobwas/cli"
 )
 
@@ -38,7 +39,7 @@ func (l *lintCommand) Run(_ context.Context, _ []string) error {
 	if err != nil {
 		return err
 	}
-	linter := &cvebaser.Linter{Repo: repo}
+	linter := &lint.Linter{Repo: repo}
 
 	start := time.Now()
 	if l.commit != "" {

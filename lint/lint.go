@@ -1,4 +1,4 @@
-package cvebaser
+package lint
 
 import (
 	"fmt"
@@ -7,11 +7,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/cvebase/cvebaser"
 	"github.com/daehee/nvd"
 )
 
 type Linter struct {
-	*Repo
+	*cvebaser.Repo
 }
 
 func (lr *Linter) LintCommit(commit string) (err error) {
@@ -21,7 +22,7 @@ func (lr *Linter) LintCommit(commit string) (err error) {
 	}
 
 	for _, p := range files {
-		pType, err := PathIsType(p)
+		pType, err := cvebaser.PathIsType(p)
 		if err != nil {
 			return err
 		}
@@ -108,8 +109,8 @@ func lintCVE(p string) (err error) {
 	}
 	defer f.Close()
 
-	var cve CVE
-	err = ParseMDFile(f, &cve)
+	var cve cvebaser.CVE
+	err = cvebaser.ParseMDFile(f, &cve)
 	if err != nil {
 		return fmt.Errorf("error parsing cve file: %s: %v", cvePathToRelPath(p), err)
 	}
@@ -121,18 +122,18 @@ func lintCVE(p string) (err error) {
 
 	// Check CVE directory structure
 	if !isValidCVESubPath(cve.CVEID, p) {
-		wantPath, _ := CVESubPath(cve.CVEID)
+		wantPath, _ := cvebaser.CVESubPath(cve.CVEID)
 		fmt.Printf("[warn]\tinvalid dir for %s: got %s; want %s\n", cve.CVEID, cvePathToRelPath(p), wantPath)
 	}
 
 	// deduplicate values
-	cve.Pocs = sortUniqStrings(cve.Pocs)
-	cve.Writeups = sortUniqStrings(cve.Writeups)
-	cve.Courses = sortUniqStrings(cve.Courses)
+	cve.Pocs = cvebaser.SortUniqStrings(cve.Pocs)
+	cve.Writeups = cvebaser.SortUniqStrings(cve.Writeups)
+	cve.Courses = cvebaser.SortUniqStrings(cve.Courses)
 
 	// TODO check required keys
 
-	err = CompileToFile(f, p, cve)
+	err = cvebaser.CompileToFile(f, p, cve)
 	if err != nil {
 		return fmt.Errorf("error compiling cve file: %v", err)
 	}
@@ -146,20 +147,20 @@ func lintResearcher(p string) (err error) {
 	}
 	defer f.Close()
 
-	var researcher Researcher
-	err = ParseMDFile(f, &researcher)
+	var researcher cvebaser.Researcher
+	err = cvebaser.ParseMDFile(f, &researcher)
 	if err != nil {
 		return fmt.Errorf("error parsing cve file: %v", err)
 	}
 
 	// Check researcher directory structure
 	if !isValidResearcherSubPath(researcher.Alias, p) {
-		wantPath := ResearcherSubPath(researcher.Alias)
+		wantPath := cvebaser.ResearcherSubPath(researcher.Alias)
 		fmt.Printf("[warn]\tinvalid dir for %s: got %s; want %s\n", researcher.Alias, researcherPathToRelPath(p), wantPath)
 	}
 
 	// deduplicate values
-	researcher.CVEs = sortUniqStrings(researcher.CVEs)
+	researcher.CVEs = cvebaser.SortUniqStrings(researcher.CVEs)
 
 	// check required keys
 	if len(researcher.CVEs) == 0 {
@@ -173,7 +174,7 @@ func lintResearcher(p string) (err error) {
 		}
 	}
 
-	err = CompileToFile(f, p, researcher)
+	err = cvebaser.CompileToFile(f, p, researcher)
 	if err != nil {
 		return fmt.Errorf("error compiling researcher file: %v", err)
 	}
@@ -203,7 +204,7 @@ func isValidCVESubPath(cveID, path string) bool {
 	// [2018, xxx, CVE-2018-0142.md]
 	splitPath = splitPath[len(splitPath)-3:]
 
-	validPath, err := CVESubPath(cveID)
+	validPath, err := cvebaser.CVESubPath(cveID)
 	if err != nil {
 		return false
 	}
@@ -227,7 +228,7 @@ func isValidResearcherSubPath(rAlias, path string) bool {
 	// becomes
 	// [orange.md]
 	splitPath = splitPath[len(splitPath)-1:]
-	splitValid := []string{ResearcherSubPath(rAlias)}
+	splitValid := []string{cvebaser.ResearcherSubPath(rAlias)}
 
 	for i, v := range splitPath {
 		if v != splitValid[i] {

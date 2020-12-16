@@ -94,7 +94,7 @@ func (r *Repo) CheckFilenamesFromCommit(h string) ([]string, error) {
 	}
 
 	// Dedupe values
-	files = uniqStrings(files)
+	files = UniqStrings(files)
 
 	// relToFullPaths := func(ps []string) []string {
 	// 	var psNew []string

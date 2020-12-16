@@ -5,8 +5,8 @@ import (
 	"sort"
 )
 
-// sortUniqStrings sorts and removes duplicates of a string slice
-func sortUniqStrings(inSlice []string) []string {
+// SortUniqStrings sorts and removes duplicates of a string slice
+func SortUniqStrings(inSlice []string) []string {
 	if len(inSlice) <= 1 {
 		return inSlice
 	}
@@ -14,13 +14,13 @@ func sortUniqStrings(inSlice []string) []string {
 		return inSlice[i] < inSlice[j]
 	}
 	sort.Slice(inSlice, lessFn)
-	return uniqStrings(inSlice)
+	return UniqStrings(inSlice)
 }
 
-// uniqStrings improves implementation of removeDuplicates
+// UniqStrings improves implementation of removeDuplicates
 // avoids the excess work done by your use of append to remove elements
-// TODO replace removeDuplicates function
-func uniqStrings(s []string) []string {
+// TODO replace RemoveDuplicates function
+func UniqStrings(s []string) []string {
 	seen := make(map[string]struct{}, len(s))
 	j := 0
 	for _, v := range s {
@@ -34,7 +34,7 @@ func uniqStrings(s []string) []string {
 	return s[:j]
 }
 
-func removeDuplicates(elements []string) []string {
+func RemoveDuplicates(elements []string) []string {
 	// Use map to record duplicates as we find them.
 	encountered := map[string]bool{}
 	result := make([]string, 0)

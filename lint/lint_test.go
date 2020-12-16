@@ -1,13 +1,14 @@
-package cvebaser
+package lint
 
 import (
 	"testing"
 
+	"github.com/cvebase/cvebaser"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestRepo_LintAll(t *testing.T) {
-	repo, err := NewRepo("../../cvebase.com", &GitOpts{})
+	repo, err := cvebaser.NewRepo("../../../cvebase.com", &cvebaser.GitOpts{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +22,7 @@ func TestRepo_LintAll(t *testing.T) {
 }
 
 func TestRepo_LintCommit(t *testing.T) {
-	repo, err := NewRepo("../../cvebase.com", &GitOpts{})
+	repo, err := cvebaser.NewRepo("../../../cvebase.com", &cvebaser.GitOpts{})
 	if err != nil {
 		t.Fatal(err)
 	}

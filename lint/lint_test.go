@@ -12,7 +12,7 @@ func TestRepo_LintAll(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	linter := &Linter{repo}
+	linter := &Linter{Repo: repo}
 
 	err = linter.LintAll(20)
 	if err != nil {
@@ -26,7 +26,7 @@ func TestRepo_LintCommit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	linter := &Linter{repo}
+	linter := &Linter{Repo: repo}
 	err = linter.LintCommit("78cce2905f6a0b24cb24adbb46e922653627faf0")
 	if err != nil {
 		t.Fatal(err)

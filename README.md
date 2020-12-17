@@ -22,6 +22,11 @@ Lint files from a specific commit:
 cvebaser lint -r <path to cvebase.com repo> -c <git commit hash>
 ```
 
+Export all cvebase PoCs to json file:
+```
+cvebaser export -r <path to cvebase.com repo> -o pocs.json
+```
+
 ## License
 
 [MIT License](LICENSE)

@@ -7,13 +7,15 @@ import (
 	"time"
 
 	"github.com/cvebase/cvebaser"
+	"github.com/cvebase/cvebaser/export"
 	"github.com/cvebase/cvebaser/lint"
 	"github.com/gobwas/cli"
 )
 
 func main() {
 	cli.Main(cli.Commands{
-		"lint": new(lintCommand),
+		"lint":   new(lintCommand),
+		"export": new(exportCommand),
 	})
 }
 
@@ -22,28 +24,28 @@ type lintCommand struct {
 	repoPath string
 }
 
-func (l *lintCommand) DefineFlags(fs *flag.FlagSet) {
-	fs.StringVar(&l.commit,
-		"c", l.commit,
+func (cmd *lintCommand) DefineFlags(fs *flag.FlagSet) {
+	fs.StringVar(&cmd.commit,
+		"c", cmd.commit,
 		"commit hash",
 	)
-	fs.StringVar(&l.repoPath,
-		"r", l.repoPath,
+	fs.StringVar(&cmd.repoPath,
+		"r", cmd.repoPath,
 		"path to cvebase.com repo",
 	)
 	// TODO add concurrency option
 }
 
-func (l *lintCommand) Run(_ context.Context, _ []string) error {
-	repo, err := cvebaser.NewRepo(l.repoPath, &cvebaser.GitOpts{})
+func (cmd *lintCommand) Run(_ context.Context, _ []string) error {
+	repo, err := cvebaser.NewRepo(cmd.repoPath, &cvebaser.GitOpts{})
 	if err != nil {
 		return err
 	}
 	linter := &lint.Linter{Repo: repo}
 
 	linter.Start()
-	if l.commit != "" {
-		err = linter.LintCommit(l.commit)
+	if cmd.commit != "" {
+		err = linter.LintCommit(cmd.commit)
 		if err != nil {
 			return err
 		}
@@ -58,6 +60,34 @@ func (l *lintCommand) Run(_ context.Context, _ []string) error {
 	// TODO print number of files modified
 
 	fmt.Printf("\nTime Completed: %v\n", linter.Stats.Duration().Round(time.Second))
+
+	return nil
+}
+
+type exportCommand struct {
+	repoPath string
+	outFile  string
+}
+
+func (cmd *exportCommand) DefineFlags(fs *flag.FlagSet) {
+	fs.StringVar(&cmd.repoPath,
+		"r", cmd.repoPath,
+		"path to cvebase.com repo",
+	)
+	fs.StringVar(&cmd.outFile, "o", cmd.outFile, "file to save output result")
+}
+
+func (cmd *exportCommand) Run(_ context.Context, _ []string) error {
+	repo, err := cvebaser.NewRepo(cmd.repoPath, &cvebaser.GitOpts{})
+	if err != nil {
+		return err
+	}
+
+	exporter := &export.Exporter{Repo: repo}
+	err = exporter.ExportCVE(cmd.outFile)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

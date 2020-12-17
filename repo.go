@@ -166,3 +166,11 @@ func cveSeqDir(seq int) (string, error) {
 func ResearcherSubPath(rAlias string) string {
 	return fmt.Sprintf("%s.md", rAlias)
 }
+
+func CvebaseURL(cveID string) string {
+	if !nvd.IsCVEIDStrict(cveID) {
+		return ""
+	}
+	year, seq := nvd.ParseCVEID(cveID)
+	return fmt.Sprintf("https://www.cvebase.com/cve/%d/%d", year, seq)
+}

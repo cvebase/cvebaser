@@ -14,7 +14,7 @@ import (
 )
 
 type Repo struct {
-	dirPath string
+	DirPath string
 	gitRepo *git.Repository
 	gitOpts *GitOpts
 }
@@ -29,7 +29,7 @@ func NewRepo(p string, g *GitOpts) (*Repo, error) {
 		return nil, errors.New("repo path not set")
 	}
 	r := &Repo{
-		dirPath: p,
+		DirPath: p,
 	}
 
 	err := r.initGitRepo(g.Clone, g.Pull)
@@ -41,7 +41,7 @@ func NewRepo(p string, g *GitOpts) (*Repo, error) {
 
 // GetFullPath converts relative file path to full path including the base directory
 func (r *Repo) GetFullPath(p string) string {
-	return path.Join(r.dirPath, p)
+	return path.Join(r.DirPath, p)
 }
 
 // ScanTree generates a channel of filepaths from sub-directory in the repo,
@@ -54,7 +54,7 @@ func (r *Repo) ScanTree(done <-chan struct{}, subDir string, fileExt string) (<-
 		// Close the paths channel after walk returns
 		defer close(pathStream)
 		// Select block not needed for this send, since errStream is buffered
-		errStream <- godirwalk.Walk(path.Join(r.dirPath, subDir), &godirwalk.Options{
+		errStream <- godirwalk.Walk(path.Join(r.DirPath, subDir), &godirwalk.Options{
 			Callback: func(osPathname string, de *godirwalk.Dirent) error {
 				if strings.Contains(osPathname, fileExt) {
 					select {

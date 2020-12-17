@@ -12,7 +12,7 @@ import (
 func (r *Repo) initGitRepo(clone, pull bool) error {
 	var err error
 	// Check dir exists
-	exists, err := DirExists(r.dirPath)
+	exists, err := DirExists(r.DirPath)
 	if err != nil {
 		return fmt.Errorf("error checking dir exists: %v", err)
 	}
@@ -20,10 +20,10 @@ func (r *Repo) initGitRepo(clone, pull bool) error {
 	// If new repo flag is set, clone fresh repo from github and return early
 	if clone {
 		if exists {
-			return fmt.Errorf("repo already exists: %s", r.dirPath)
+			return fmt.Errorf("repo already exists: %s", r.DirPath)
 		}
 
-		r.gitRepo, err = git.PlainClone(r.dirPath, false, &git.CloneOptions{
+		r.gitRepo, err = git.PlainClone(r.DirPath, false, &git.CloneOptions{
 			URL:      "https://github.com/cvebase/cvebase.com",
 			Progress: os.Stdout,
 		})
@@ -37,11 +37,11 @@ func (r *Repo) initGitRepo(clone, pull bool) error {
 	}
 
 	if !exists {
-		return fmt.Errorf("repo does not exist: %s", r.dirPath)
+		return fmt.Errorf("repo does not exist: %s", r.DirPath)
 	}
 
 	// Open git repo at given path
-	r.gitRepo, err = git.PlainOpen(r.dirPath)
+	r.gitRepo, err = git.PlainOpen(r.DirPath)
 	if err != nil {
 		return fmt.Errorf("error loading git repo: %v", err)
 	}

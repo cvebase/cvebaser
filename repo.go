@@ -1,8 +1,10 @@
 package cvebaser
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -70,6 +72,45 @@ func (r *Repo) ScanTree(done <-chan struct{}, subDir string, fileExt string) (<-
 		})
 	}()
 	return pathStream, errStream
+}
+
+// ScanCVE returns a channel of all CVE objects in the repo.
+// A buffered error channel returns any errors encountered during the dirwalk.
+func (r *Repo) ScanCVE(ctx context.Context) (<-chan CVE, <-chan error) {
+	cveStream := make(chan CVE)
+	errStream := make(chan error, 1)
+	go func() {
+		// Close the paths channel after walk returns
+		defer close(cveStream)
+		defer close(errStream)
+		// Select block not needed for this send, since errStream is buffered
+		errStream <- godirwalk.Walk(path.Join(r.DirPath, "cve"), &godirwalk.Options{
+			Callback: func(osPathname string, de *godirwalk.Dirent) error {
+				if strings.Contains(osPathname, ".md") {
+					f, err := os.OpenFile(osPathname, os.O_RDWR, 0755)
+					if err != nil {
+						return fmt.Errorf("error opening %s", osPathname)
+					}
+					defer f.Close()
+
+					cve, err := ParseCVEMDFile(f)
+					if err != nil {
+						return err
+					}
+
+					select {
+					case cveStream <- cve:
+					case <-ctx.Done():
+						// Abort the walk if done is closed
+						return errors.New("walk canceled")
+					}
+				}
+				return nil
+			},
+			Unsorted: false, // Set to sort for consistent ordered results
+		})
+	}()
+	return cveStream, errStream
 }
 
 // WantPath attempts to repair a provided cve or researcher filepath

@@ -1,6 +1,7 @@
 package cvebaser
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -172,5 +173,53 @@ func TestCVESeqDir(t *testing.T) {
 		got, err := cveSeqDir(tt.sequence)
 		assert.NoError(t, err)
 		assert.Equal(t, got, tt.want)
+	}
+}
+
+func TestRepo_ScanCVE(t *testing.T) {
+	var err error
+
+	t.Log("setup")
+	err = setup()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testRepo := "tmp/cvebase.com"
+
+	_, err = git.PlainClone(testRepo, false, &git.CloneOptions{
+		URL:      "https://github.com/cvebase/cvebase.com",
+		Progress: os.Stdout,
+		Depth:    1,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	r, err := NewRepo(testRepo, &GitOpts{})
+	assert.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	cveStream, errStream := r.ScanCVE(ctx)
+
+Loop:
+	for {
+		select {
+		case v, ok := <-cveStream:
+			if ok == false {
+				break Loop
+			}
+			// Do work
+			assert.NotEmpty(t, v)
+		case err = <-errStream:
+			assert.NoError(t, err)
+		}
+	}
+
+	t.Log("cleanup")
+	err = cleanup()
+	if err != nil {
+		t.Fatal(err)
 	}
 }

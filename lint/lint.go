@@ -182,6 +182,8 @@ func lintResearcher(p string) (err error) {
 		fmt.Printf("[warn]\tno CVEs defined for %s: %s\n", researcher.Alias, researcherPathToRelPath(p))
 	}
 
+	// TODO regex validate website, social profiles
+
 	// check each CVE ID if valid format
 	for _, v := range researcher.CVEs {
 		if !nvd.IsCVEID(v) {

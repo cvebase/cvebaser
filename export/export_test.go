@@ -14,6 +14,6 @@ func TestExporter_ExportCVE(t *testing.T) {
 	}
 	exporter := &Exporter{Repo: repo}
 
-	err = exporter.ExportCVE("test.json")
+	err = exporter.ExportCVE("../tmp/test.json")
 	assert.NoError(t, err)
 }

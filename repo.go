@@ -11,13 +11,11 @@ import (
 	"strings"
 
 	"github.com/daehee/nvd"
-	"github.com/go-git/go-git/v5"
 	"github.com/karrick/godirwalk"
 )
 
 type Repo struct {
 	DirPath string
-	gitRepo *git.Repository
 	gitOpts *GitOpts
 }
 

@@ -3,7 +3,6 @@ package cvebaser
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -23,9 +22,9 @@ func (r *Repo) initGitRepo(clone, pull bool) error {
 			return fmt.Errorf("repo already exists: %s", r.DirPath)
 		}
 
-		r.gitRepo, err = git.PlainClone(r.DirPath, false, &git.CloneOptions{
-			URL:      "https://github.com/cvebase/cvebase.com",
-			Progress: os.Stdout,
+		_, err = git.PlainClone(r.DirPath, false, &git.CloneOptions{
+			URL: "https://github.com/cvebase/cvebase.com",
+			// Progress: os.Stdout,
 		})
 		if err != nil {
 			if err == git.ErrRepositoryAlreadyExists {
@@ -41,14 +40,14 @@ func (r *Repo) initGitRepo(clone, pull bool) error {
 	}
 
 	// Open git repo at given path
-	r.gitRepo, err = git.PlainOpen(r.DirPath)
+	gitRepo, err := git.PlainOpen(r.DirPath)
 	if err != nil {
 		return fmt.Errorf("error loading git repo: %v", err)
 	}
 
 	// If pull flag is set, git pull to match remote origin
 	if pull {
-		w, err := r.gitRepo.Worktree()
+		w, err := gitRepo.Worktree()
 		if err != nil {
 			return err
 		}
@@ -62,12 +61,17 @@ func (r *Repo) initGitRepo(clone, pull bool) error {
 }
 
 func (r *Repo) CheckFilenamesFromCommit(h string) ([]string, error) {
-	ref, err := r.gitRepo.Head()
+	gitRepo, err := git.PlainOpen(r.DirPath)
+	if err != nil {
+		return nil, fmt.Errorf("error loading git repo: %v", err)
+	}
+
+	ref, err := gitRepo.Head()
 	if err != nil {
 		return nil, err
 	}
 
-	cIter, err := r.gitRepo.Log(&git.LogOptions{From: ref.Hash()})
+	cIter, err := gitRepo.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
 		return nil, err
 	}
